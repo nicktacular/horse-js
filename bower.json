@@ -1,0 +1,21 @@
+{
+  "name": "horse-js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/nicktacular/horse-js",
+  "authors": [
+    "nicktacular <nick.ilyin@gmail.com>"
+    "p33rs <jon@peers.pw>",
+  ],
+  "description": "a robust and flexible horse framework",
+  "main": "README.md",
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "git://github.com/jquery/jquery.git"
+  }
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "dist/vendor.js"
+  ]
+}
