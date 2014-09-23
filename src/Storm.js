@@ -94,7 +94,7 @@ Storm.prototype.stop = function() {
     var storms = this.storms;
     this.storms = [];
     for (var i = 0; i < storms.length; i++) {
-        window.clearInterval(storms[i]);
+        window.clearTimeout(storms[i]);
     }
     return this;
 };
