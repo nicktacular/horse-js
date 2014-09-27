@@ -1,0 +1,5 @@
+**/.*
+!.gitignore
+dist/vendor.js
+bower_components
+node_modules
