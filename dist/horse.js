@@ -4,7 +4,7 @@ function Epilepsy(options) {
         throw new Error('required an object.');
     }
     this.Epilepsies = [];
-    this.options = $.extend(this.defaultOptions, options);
+    this.opts = $.extend(this.defaultOptions, options);
 
 }
 
@@ -19,9 +19,9 @@ Epilepsy.prototype.defaultOptions = {
 
 Epilepsy.prototype.options = function(options, option) {
     if (typeof options === 'undefined') {
-        return this.options;
+        return this.opts;
     }
-    var newOptions = this.options;
+    var newOptions = this.opts;
     if (typeof option === 'undefined' && typeof options === 'object') {
         $.extend(newOptions, options);
     } else if (typeof option !== 'undefined') {
@@ -32,7 +32,7 @@ Epilepsy.prototype.options = function(options, option) {
         throw TypeError('unexpected configuration');
     }
     if (this.validateOptions(newOptions)) {
-        this.options = newOptions;
+        this.opts = newOptions;
     } else {
         throw Error('invalid parameter');
     }
@@ -55,10 +55,10 @@ Epilepsy.prototype.validateOptions = function(options) {
 };
 
 Epilepsy.prototype.start = function() {
-    if (this.Epilepsies.length || this.options.spawners < 0) {
+    if (this.Epilepsies.length || this.opts.spawners < 0) {
         return this;
     }
-    for (var i = 0; i < this.options.spawners; i++) {
+    for (var i = 0; i < this.opts.spawners; i++) {
         this.Epilepsies.push(this.generateSpawner());
     }
     return this;
@@ -70,7 +70,7 @@ Epilepsy.prototype.generateSpawner = function(i) {
         i = this.Epilepsies.length;
     }
 
-    var o = this.options;
+    var o = this.opts;
     var element = $(o.object).first().clone().appendTo($('body'))
         .css({
             position: 'fixed',
@@ -106,7 +106,7 @@ Epilepsy.prototype.rand = function(min, max) {
     if (min > max) {
         throw new RangeError('requested invalid range');
     }
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 ;
 function Storm(options) {
@@ -115,7 +115,7 @@ function Storm(options) {
         throw new Error('required an object.');
     }
     this.storms = [];
-    this.options = $.extend(this.defaultOptions, options);
+    this.opts = $.extend(this.defaultOptions, options);
 
 }
 
@@ -129,9 +129,9 @@ Storm.prototype.defaultOptions = {
 
 Storm.prototype.options = function(options, option) {
     if (typeof options === 'undefined') {
-        return this.options;
+        return this.opts;
     }
-    var newOptions = this.options;
+    var newOptions = this.opts;
     if (typeof option === 'undefined' && typeof options === 'object') {
         $.extend(newOptions, options);
     } else if (typeof option !== 'undefined') {
@@ -142,7 +142,7 @@ Storm.prototype.options = function(options, option) {
         throw TypeError('unexpected configuration');
     }
     if (this.validateOptions(newOptions)) {
-        this.options = newOptions;
+        this.opts = newOptions;
     } else {
         throw Error('invalid parameter');
     }
@@ -164,10 +164,10 @@ Storm.prototype.validateOptions = function(options) {
 };
 
 Storm.prototype.start = function() {
-    if (this.storms.length || this.options.spawners < 0) {
+    if (this.storms.length || this.opts.spawners < 0) {
         return this;
     }
-    for (var i = 0; i < this.options.spawners; i++) {
+    for (var i = 0; i < this.opts.spawners; i++) {
         this.storms.push(this.generateSpawner());
     }
     return this;
@@ -179,7 +179,7 @@ Storm.prototype.generateSpawner = function(i) {
         i = this.storms.length;
     }
 
-    var o = this.options;
+    var o = this.opts;
     var element = $(o.object).first().clone()
         .appendTo($('body'));
     element
@@ -216,5 +216,5 @@ Storm.prototype.rand = function(min, max) {
     if (min > max) {
         throw new RangeError('requested invalid range');
     }
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 };

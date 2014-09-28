@@ -4,7 +4,7 @@ function Storm(options) {
         throw new Error('required an object.');
     }
     this.storms = [];
-    this.options = $.extend(this.defaultOptions, options);
+    this.opts = $.extend(this.defaultOptions, options);
 
 }
 
@@ -18,9 +18,9 @@ Storm.prototype.defaultOptions = {
 
 Storm.prototype.options = function(options, option) {
     if (typeof options === 'undefined') {
-        return this.options;
+        return this.opts;
     }
-    var newOptions = this.options;
+    var newOptions = this.opts;
     if (typeof option === 'undefined' && typeof options === 'object') {
         $.extend(newOptions, options);
     } else if (typeof option !== 'undefined') {
@@ -31,7 +31,7 @@ Storm.prototype.options = function(options, option) {
         throw TypeError('unexpected configuration');
     }
     if (this.validateOptions(newOptions)) {
-        this.options = newOptions;
+        this.opts = newOptions;
     } else {
         throw Error('invalid parameter');
     }
@@ -53,10 +53,10 @@ Storm.prototype.validateOptions = function(options) {
 };
 
 Storm.prototype.start = function() {
-    if (this.storms.length || this.options.spawners < 0) {
+    if (this.storms.length || this.opts.spawners < 0) {
         return this;
     }
-    for (var i = 0; i < this.options.spawners; i++) {
+    for (var i = 0; i < this.opts.spawners; i++) {
         this.storms.push(this.generateSpawner());
     }
     return this;
@@ -68,7 +68,7 @@ Storm.prototype.generateSpawner = function(i) {
         i = this.storms.length;
     }
 
-    var o = this.options;
+    var o = this.opts;
     var element = $(o.object).first().clone()
         .appendTo($('body'));
     element
