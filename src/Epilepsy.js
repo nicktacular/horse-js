@@ -1,14 +1,14 @@
-function MichaelBay(options) {
+function Epilepsy(options) {
 
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.MichaelBays = [];
-    this.options = $.extend(this.defaultOptions, options);
+    this.Epilepsies = [];
+    this.opts = $.extend(this.defaultOptions, options);
 
 }
 
-MichaelBay.prototype.defaultOptions = {
+Epilepsy.prototype.defaultOptions = {
     spawners: 8,
     minDelay: 1000,
     maxDelay: 2000,
@@ -17,11 +17,11 @@ MichaelBay.prototype.defaultOptions = {
     maxDuration: 50
 };
 
-MichaelBay.prototype.options = function(options, option) {
+Epilepsy.prototype.options = function(options, option) {
     if (typeof options === 'undefined') {
-        return this.options;
+        return this.opts;
     }
-    var newOptions = this.options;
+    var newOptions = this.opts;
     if (typeof option === 'undefined' && typeof options === 'object') {
         $.extend(newOptions, options);
     } else if (typeof option !== 'undefined') {
@@ -32,14 +32,14 @@ MichaelBay.prototype.options = function(options, option) {
         throw TypeError('unexpected configuration');
     }
     if (this.validateOptions(newOptions)) {
-        this.options = newOptions;
+        this.opts = newOptions;
     } else {
         throw Error('invalid parameter');
     }
     return this;
 };
 
-MichaelBay.prototype.validateOptions = function(options) {
+Epilepsy.prototype.validateOptions = function(options) {
     return (
         options &&
             (options.spawners === 'number' && options.spawners > 0 ) &&
@@ -54,23 +54,23 @@ MichaelBay.prototype.validateOptions = function(options) {
         );
 };
 
-MichaelBay.prototype.start = function() {
-    if (this.MichaelBays.length || this.options.spawners < 0) {
+Epilepsy.prototype.start = function() {
+    if (this.Epilepsies.length || this.opts.spawners < 0) {
         return this;
     }
-    for (var i = 0; i < this.options.spawners; i++) {
-        this.MichaelBays.push(this.generateSpawner());
+    for (var i = 0; i < this.opts.spawners; i++) {
+        this.Epilepsies.push(this.generateSpawner());
     }
     return this;
 };
 
-MichaelBay.prototype.generateSpawner = function(i) {
+Epilepsy.prototype.generateSpawner = function(i) {
 
     if (typeof i === 'undefined') {
-        i = this.MichaelBays.length;
+        i = this.Epilepsies.length;
     }
 
-    var o = this.options;
+    var o = this.opts;
     var element = $(o.object).first().clone().appendTo($('body'))
         .css({
             position: 'fixed',
@@ -86,25 +86,25 @@ MichaelBay.prototype.generateSpawner = function(i) {
     return window.setTimeout(function() {
         window.clearInterval(interval);
         element.remove();
-        self.MichaelBays[i] = self.generateSpawner(i);
+        self.Epilepsies[i] = self.generateSpawner(i);
     }, this.rand(o.minDelay, o.maxDelay));
 
 };
 
-MichaelBay.prototype.stop = function() {
-    var MichaelBays = this.MichaelBays;
-    this.MichaelBays = [];
-    for (var i = 0; i < MichaelBays.length; i++) {
-        window.clearTimeout(MichaelBays[i]);
+Epilepsy.prototype.stop = function() {
+    var Epilepsies = this.Epilepsies;
+    this.Epilepsies = [];
+    for (var i = 0; i < Epilepsies.length; i++) {
+        window.clearTimeout(Epilepsies[i]);
     }
     return this;
 };
 
-MichaelBay.prototype.rand = function(min, max) {
+Epilepsy.prototype.rand = function(min, max) {
     if (typeof min === 'undefined') min = 0;
     if (typeof max === 'undefined') max = 1;
     if (min > max) {
         throw new RangeError('requested invalid range');
     }
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 };
