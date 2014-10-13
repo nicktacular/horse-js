@@ -4,7 +4,8 @@
   "homepage": "https://github.com/nicktacular/horse-js",
   "authors": [
     "nicktacular <nick.ilyin@gmail.com>",
-    "p33rs <jon@peers.pw>"
+    "p33rs <jon@peers.pw>",
+    "gldef <deforestg@gmail.com>"
   ],
   "description": "a robust and flexible horse framework",
   "main": "README.md",
