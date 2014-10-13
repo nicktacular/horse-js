@@ -39,8 +39,8 @@ function Runaway(options) {
 }
 
 Runaway.prototype.options = {
-    proximity: 30,
-    velocity: 20
+    proximity: 50,
+    velocity: 50
 };
 
 Runaway.prototype.velocity = 0;
@@ -56,7 +56,13 @@ Runaway.prototype.start = function(thing) {
     this.thing = $(thing);
     this.window = $(window);
 
-    this.thing.css({"position": "fixed", "z-index": 2147483647});   // lol
+    var position = this.thing.offset();
+    this.thing.css({
+        "position": "absolute",
+        "z-index": 2147483647,
+        left: position.left + "px",
+        top: position.top + "px"
+    });   // lol
     this.uniqueId = Math.random().toString(36).substr(2);
     this.window.on('mousemove.runaway' + this.uniqueId, $.proxy(this.run, this));
 };
@@ -70,13 +76,13 @@ Runaway.prototype.run = function(e) {
 
     // first grab object position CENTER relative to window scroll and object size
     var adjustedPos = [
-        position.left + this.thing.width()/2 - this.window.scrollLeft(),
-        position.top + this.thing.height()/2 - this.window.scrollTop()
+        position.left + this.thing.outerWidth()/2 - this.window.scrollLeft(),
+        position.top + this.thing.outerHeight()/2 - this.window.scrollTop()
     ];
 
     var mouseOffset = [
-        e.pageX - adjustedPos[0],
-        e.pageY - adjustedPos[1]
+        e.pageX - this.window.scrollLeft() - adjustedPos[0],
+        e.pageY - this.window.scrollTop() - adjustedPos[1]
     ];
 
     var mouseVector = [
@@ -87,16 +93,16 @@ Runaway.prototype.run = function(e) {
     // these are the relative coordinates of the edge of the object in the direction of the mouse
     // for instance, the corners are the farthest away the mouse can be from the center and still be touching the object
     var objectOffset = [
-        this.thing.width()/2 * mouseVector[0],
-        this.thing.height()/2 * mouseVector[1]
+        this.thing.outerWidth()/2 * mouseVector[0],
+        this.thing.outerHeight()/2 * mouseVector[1]
     ];
 
     // in most cases, the mouse isn't even close to the object
     // so this saves us doing a distance calculation
     if (
         Math.abs(mouseOffset[0] - objectOffset[0]) > this.proximity ||
-            Math.abs(mouseOffset[1] - objectOffset[1]) > this.proximity
-        ) {
+        Math.abs(mouseOffset[1] - objectOffset[1]) > this.proximity
+    ) {
         return;
     }
 
@@ -118,10 +124,10 @@ Runaway.prototype.run = function(e) {
 
     if (
         newPosition[0] < 0 ||
-            newPosition[0] > this.window.width() ||
-            newPosition[1] < 0 ||
-            newPosition[1] > this.window.height()
-        ) {    // out of bounds, lets get random
+        newPosition[0] > this.window.width() ||
+        newPosition[1] < 0 ||
+        newPosition[1] > this.window.height()
+    ) {    // out of bounds, lets get random
         newPosition[0] = Math.floor(Math.random() * this.window.width());
         newPosition[1] = Math.floor(Math.random() * this.window.height());
     }
