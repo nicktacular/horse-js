@@ -68,16 +68,28 @@ Runaway.prototype.start = function(thing) {
 Runaway.prototype.run = function(e) {
     var position = this.thing.offset();
 
+    var halfWidth = this.thing.width()/2;
+    var halfHeight = this.thing.height()/2;
+
     // first grab object position CENTER relative to window scroll and object size
     var adjustedPos = [
-        position.left + this.thing.width()/2 - this.window.scrollLeft(),
-        position.top + this.thing.height()/2 - this.window.scrollTop()
+        position.left + halfWidth - this.window.scrollLeft(),
+        position.top + halfHeight - this.window.scrollTop()
     ];
 
     var mouseOffset = [
         e.pageX - adjustedPos[0],
         e.pageY - adjustedPos[1]
     ];
+
+    // in most cases, the mouse isn't even close to the object
+    // so this saves us a lot of calculations
+    if (
+        Math.abs(mouseOffset[0] - adjustedPos[0]) > this.proximity + halfWidth ||
+        Math.abs(mouseOffset[1] - adjustedPos[1]) > this.proximity + halfHeight
+        ) {
+        return;
+    }
 
     var mouseVector = [
         Math.cos(mouseOffset[0]),
@@ -87,18 +99,9 @@ Runaway.prototype.run = function(e) {
     // these are the relative coordinates of the edge of the object in the direction of the mouse
     // for instance, the corners are the farthest away the mouse can be from the center and still be touching the object
     var objectOffset = [
-        this.thing.width()/2 * mouseVector[0],
-        this.thing.height()/2 * mouseVector[1]
+        halfWidth * mouseVector[0],
+        halfHeight * mouseVector[1]
     ];
-
-    // in most cases, the mouse isn't even close to the object
-    // so this saves us doing a distance calculation
-    if (
-        Math.abs(mouseOffset[0] - objectOffset[0]) > this.proximity ||
-            Math.abs(mouseOffset[1] - objectOffset[1]) > this.proximity
-        ) {
-        return;
-    }
 
     var dist = this.distance(mouseOffset, objectOffset);
 
