@@ -39,8 +39,8 @@ function Runaway(options) {
 }
 
 Runaway.prototype.options = {
-    proximity: 30,
-    velocity: 20
+    proximity: 50,
+    velocity: 50
 };
 
 Runaway.prototype.velocity = 0;
@@ -56,9 +56,16 @@ Runaway.prototype.start = function(thing) {
     this.thing = $(thing);
     this.window = $(window);
 
-    this.thing.css({"position": "fixed", "z-index": 2147483647});   // lol
+    var position = this.thing.offset();
+    this.thing.css({
+        "left": position.left,
+        "top": position.top,
+        "position": "absolute",
+        "z-index": 2147483647
+    });   // lol
     this.uniqueId = Math.random().toString(36).substr(2);
     this.window.on('mousemove.runaway' + this.uniqueId, $.proxy(this.run, this));
+
 };
 
 /**
@@ -68,13 +75,14 @@ Runaway.prototype.start = function(thing) {
 Runaway.prototype.run = function(e) {
     var position = this.thing.offset();
 
-    var halfWidth = this.thing.width()/2;
-    var halfHeight = this.thing.height()/2;
 
-    // first grab object position CENTER relative to window scroll and object size
+    var halfWidth = this.thing.outerWidth()/2;
+    var halfHeight = this.thing.outerHeight()/2;
+
+    // first grab object position CENTER relative to object size
     var adjustedPos = [
-        position.left + halfWidth - this.window.scrollLeft(),
-        position.top + halfHeight - this.window.scrollTop()
+        position.left + halfWidth,
+        position.top + halfHeight
     ];
 
     var mouseOffset = [
@@ -85,9 +93,9 @@ Runaway.prototype.run = function(e) {
     // in most cases, the mouse isn't even close to the object
     // so this saves us a lot of calculations
     if (
-        Math.abs(mouseOffset[0] - adjustedPos[0]) > this.proximity + halfWidth ||
-        Math.abs(mouseOffset[1] - adjustedPos[1]) > this.proximity + halfHeight
-        ) {
+        Math.abs(mouseOffset[0]) > this.proximity + halfWidth ||
+        Math.abs(mouseOffset[1]) > this.proximity + halfHeight
+    ) {
         return;
     }
 
@@ -121,10 +129,10 @@ Runaway.prototype.run = function(e) {
 
     if (
         newPosition[0] < 0 ||
-            newPosition[0] > this.window.width() ||
-            newPosition[1] < 0 ||
-            newPosition[1] > this.window.height()
-        ) {    // out of bounds, lets get random
+        newPosition[0] > this.window.width() ||
+        newPosition[1] < 0 ||
+        newPosition[1] > this.window.height()
+    ) {    // out of bounds, lets get random
         newPosition[0] = Math.floor(Math.random() * this.window.width());
         newPosition[1] = Math.floor(Math.random() * this.window.height());
     }
