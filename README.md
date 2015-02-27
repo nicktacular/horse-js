@@ -16,3 +16,5 @@ horse.js is flexible and robust. Functionality includes western riding, English 
 ## ToDo
 - `MichaelBay` and `Storm` should extend a generic Spawner
 - `Storm` should support movement in different directions, including diagonals, which should have appropriate rotate-transforms applied to them.
+- `HayVer` should start supporting semantic versioning.
+
