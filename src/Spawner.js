@@ -1,3 +1,13 @@
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.minDelay=600] - how quickly should spawners run?
+ * @param {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @param {function} [options.callback=null] - runs when a spawn occurs.
+ *   receives the new element and the previously spawned element,
+ *   if there was one, as arguments.
+ */
 function Spawner(options)
 {
     if (!options || !options.object || !$(options.object).length) {

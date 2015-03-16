@@ -1,3 +1,79 @@
+/**
+ * Uselessly rotates your cursor.
+ * ... with mad respect to CraigIsCool.com for the first version
+ * @param {Object} [options] - Some options. Sane defaults provided.
+ * @param {int} [options.speed=40] - ms, how often do we rotate the cursor?
+ * @param {$} [options.target=*] - cursor change affects what on the page?
+ * @param {bool} [options.anti=false] - if true, spins anticlockwise
+ */
+function Cursor(options)
+{
+    this.opts = $.extend({}, this.defaultOptions, options);
+    this.cursors = [
+        'n-resize',
+        'ne-resize',
+        'e-resize',
+        'se-resize',
+        's-resize',
+        'sw-resize',
+        'w-resize',
+        'nw-resize'
+    ];
+    this.pos = 0;
+    this.interval = null;
+}
+
+Cursor.prototype.defaultOptions = {
+    speed: 40,
+    target: '*',
+    anti: false
+};
+
+Cursor.prototype.blip = function()
+{
+    $(this.opts.target).css('cursor', this.cursors[this.pos]);
+    if (this.opts.anti && this.pos === 0) {
+        this.pos = this.cursors.length - 1;
+    } else if (!this.opts.anti && this.pos === this.cursors.length - 1) {
+        this.pos = 0;
+    } else if (this.opts.anti) {
+        this.pos--;
+    } else {
+        this.pos++;
+    }
+};
+
+Cursor.prototype.start = function()
+{
+    if (this.timeout) {
+        this.stop();
+    }
+    this.interval = window.setInterval(
+        this.blip.bind(this),
+        this.opts.speed
+    );
+    return this;
+};
+
+Cursor.prototype.stop = function()
+{
+    if (this.interval) {
+        window.clearInterval(this.interval);
+    }
+    return this;
+};;
+/**
+ * Spawn an object and display it, temporarily, at a random spot.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.spawners=20] - how many generated at a time?
+ * @param {function} [options.animation=null] - every minDuration/maxDuration, this is called.
+ *   Runs in the context of the object. Use, eg., to toggle a class.
+ * @param {int} [options.minDelay=600] - how long does the element exist?
+ * @param {int} [options.maxDelay=800] - how long does the element exist?
+ * @param {int} [options.minDuration=200] - how quickly does the animation run?
+ * @param {int} [options.maxDuration=600] - how quickly does the animation run?
+ */
 function Epilepsy(options) {
 
     if (!options || !options.object || !$(options.object).length) {
@@ -263,6 +339,16 @@ Runaway.prototype.stop = function() {
     this.thing.unbind('mouseover.runaway' + this.uniqueId);
 };
 ;
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @paramm {$} options.object - what gets displayed?
+ * @paramm {int} [options.minDelay=600] - how quickly should spawners run?
+ * @paramm {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @paramm {function} [options.callback=null] - runs when a spawn occurs.
+ *   receives the new element and the previously spawned element,
+ *   if there was one, as arguments.
+ */
 function Spawner(options)
 {
     if (!options || !options.object || !$(options.object).length) {
@@ -332,12 +418,20 @@ Spawner.prototype.rand = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 ;
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @paramm {$} options.object - what gets displayed?
+ * @paramm {int} [options.minDelay=600] - how quickly should spawners run?
+ * @paramm {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @paramm {int} [options.minDuration=200] - how long should it take to move across the screen?
+ * @paramm {int} [options.maxDuration=600] - how long should it take to move across the screen?
+ */
 function Storm(options) {
-
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.storms = [];
+    this.spawner = null;
     this.opts = $.extend({}, this.defaultOptions, options);
     if (!this.validateOptions(this.opts)) {
         throw Error('invalid options for storm');
@@ -345,9 +439,8 @@ function Storm(options) {
 }
 
 Storm.prototype.defaultOptions = {
-    spawners: 20,
-    minDelay: 600,
-    maxDelay: 800,
+    minDelay: 100,
+    maxDelay: 200,
     minDuration: 200,
     maxDuration: 600
 };
@@ -355,7 +448,6 @@ Storm.prototype.defaultOptions = {
 Storm.prototype.validateOptions = function(options) {
     return (
         options &&
-        (typeof options.spawners === 'number' && options.spawners > 0 ) &&
         (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
         (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
         (options.minDelay <= options.maxDelay) &&
@@ -367,24 +459,16 @@ Storm.prototype.validateOptions = function(options) {
 };
 
 Storm.prototype.start = function() {
-    if (this.storms.length || this.opts.spawners < 0) {
-        return this;
+    if (this.spawner) {
+        this.spawner.stop();
     }
-    for (var i = 0; i < this.opts.spawners; i++) {
-        this.storms.push(this.generateSpawner());
-    }
-    return this;
-};
-
-Storm.prototype.generateSpawner = function() {
-
-    return new Spawner({
+    this.spawner = new Spawner({
         object: $(this.opts.object),
         callback: this.storm.bind(this),
         minDelay: this.opts.minDelay,
         maxDelay: this.opts.maxDelay
     }).start();
-
+    return this;
 };
 
 Storm.prototype.storm = function(element) {
@@ -407,10 +491,10 @@ Storm.prototype.storm = function(element) {
 };
 
 Storm.prototype.stop = function() {
-    for (var i = 0; i < this.storms.length; i++) {
-        this.storms[i].stop();
+    if (this.spawner) {
+        this.spawner.stop();
     }
-    this.storms = [];
+    this.spawner = null;
     return this;
 };
 

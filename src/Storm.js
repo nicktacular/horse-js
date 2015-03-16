@@ -1,9 +1,17 @@
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.minDelay=600] - how quickly should spawners run?
+ * @param {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @param {int} [options.minDuration=200] - how long should it take to move across the screen?
+ * @param {int} [options.maxDuration=600] - how long should it take to move across the screen?
+ */
 function Storm(options) {
-
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.storms = [];
+    this.spawner = null;
     this.opts = $.extend({}, this.defaultOptions, options);
     if (!this.validateOptions(this.opts)) {
         throw Error('invalid options for storm');
@@ -11,9 +19,8 @@ function Storm(options) {
 }
 
 Storm.prototype.defaultOptions = {
-    spawners: 20,
-    minDelay: 600,
-    maxDelay: 800,
+    minDelay: 100,
+    maxDelay: 200,
     minDuration: 200,
     maxDuration: 600
 };
@@ -21,7 +28,6 @@ Storm.prototype.defaultOptions = {
 Storm.prototype.validateOptions = function(options) {
     return (
         options &&
-        (typeof options.spawners === 'number' && options.spawners > 0 ) &&
         (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
         (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
         (options.minDelay <= options.maxDelay) &&
@@ -33,24 +39,16 @@ Storm.prototype.validateOptions = function(options) {
 };
 
 Storm.prototype.start = function() {
-    if (this.storms.length || this.opts.spawners < 0) {
-        return this;
+    if (this.spawner) {
+        this.spawner.stop();
     }
-    for (var i = 0; i < this.opts.spawners; i++) {
-        this.storms.push(this.generateSpawner());
-    }
-    return this;
-};
-
-Storm.prototype.generateSpawner = function() {
-
-    return new Spawner({
+    this.spawner = new Spawner({
         object: $(this.opts.object),
         callback: this.storm.bind(this),
         minDelay: this.opts.minDelay,
         maxDelay: this.opts.maxDelay
     }).start();
-
+    return this;
 };
 
 Storm.prototype.storm = function(element) {
@@ -73,10 +71,10 @@ Storm.prototype.storm = function(element) {
 };
 
 Storm.prototype.stop = function() {
-    for (var i = 0; i < this.storms.length; i++) {
-        this.storms[i].stop();
+    if (this.spawner) {
+        this.spawner.stop();
     }
-    this.storms = [];
+    this.spawner = null;
     return this;
 };
 

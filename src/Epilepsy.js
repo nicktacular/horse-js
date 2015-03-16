@@ -1,3 +1,15 @@
+/**
+ * Spawn an object and display it, temporarily, at a random spot.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.spawners=20] - how many generated at a time?
+ * @param {function} [options.animation=null] - every minDuration/maxDuration, this is called.
+ *   Runs in the context of the object. Use, eg., to toggle a class.
+ * @param {int} [options.minDelay=600] - how long does the element exist?
+ * @param {int} [options.maxDelay=800] - how long does the element exist?
+ * @param {int} [options.minDuration=200] - how quickly does the animation run?
+ * @param {int} [options.maxDuration=600] - how quickly does the animation run?
+ */
 function Epilepsy(options) {
 
     if (!options || !options.object || !$(options.object).length) {
