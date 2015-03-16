@@ -2,8 +2,8 @@
  * Spawn an object and fly it across the screen.
  * @param {Object} options - Some options. Sane defaults provided.
  * @param {$} options.object - what gets displayed?
- * @param {int} [options.minDelay=600] - how quickly should spawners run?
- * @param {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @param {int} [options.minDelay=100] - how quickly should spawners run?
+ * @param {int} [options.maxDelay=200] - how quickly should spawners run?
  * @param {int} [options.minDuration=200] - how long should it take to move across the screen?
  * @param {int} [options.maxDuration=600] - how long should it take to move across the screen?
  */
