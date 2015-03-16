@@ -1,11 +1,26 @@
+/**
+ * Spawn an object and display it, temporarily, at a random spot.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.spawners=8] - how many generated at a time?
+ * @param {function} [options.animation=null] - every minDuration/maxDuration, this is called.
+ *   Runs in the context of the object. Use, eg., to toggle a class.
+ * @param {int} [options.minDelay=600] - how long does the element exist?
+ * @param {int} [options.maxDelay=800] - how long does the element exist?
+ * @param {int} [options.minDuration=200] - how quickly does the animation run?
+ * @param {int} [options.maxDuration=600] - how quickly does the animation run?
+ */
 function Epilepsy(options) {
 
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.Epilepsies = [];
-    this.opts = $.extend(this.defaultOptions, options);
-
+    this.epilepsies = [];
+    this.opts = $.extend({}, this.defaultOptions, options);
+    this.intervalProperty = '__epilepsy';
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for epilepsy');
+    }
 }
 
 Epilepsy.prototype.defaultOptions = {
@@ -17,37 +32,15 @@ Epilepsy.prototype.defaultOptions = {
     maxDuration: 50
 };
 
-Epilepsy.prototype.options = function(options, option) {
-    if (typeof options === 'undefined') {
-        return this.opts;
-    }
-    var newOptions = this.opts;
-    if (typeof option === 'undefined' && typeof options === 'object') {
-        $.extend(newOptions, options);
-    } else if (typeof option !== 'undefined') {
-        var v = {};
-        v[options] = option;
-        $.extend(newOptions, v);
-    } else {
-        throw TypeError('unexpected configuration');
-    }
-    if (this.validateOptions(newOptions)) {
-        this.opts = newOptions;
-    } else {
-        throw Error('invalid parameter');
-    }
-    return this;
-};
-
 Epilepsy.prototype.validateOptions = function(options) {
     return (
         options &&
-            (options.spawners === 'number' && options.spawners > 0 ) &&
-            (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-            (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+            (typeof options.spawners === 'number' && options.spawners > 0 ) &&
+            (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+            (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
             (options.minDelay <= options.maxDelay) &&
-            (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-            (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+            (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+            (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
             (options.minDuration <= options.maxDuration) &&
             (options.object instanceof jQuery && options.object.length === 1) &&
             (typeof options.animation  === 'function' || options.animation === null)
@@ -55,48 +48,58 @@ Epilepsy.prototype.validateOptions = function(options) {
 };
 
 Epilepsy.prototype.start = function() {
-    if (this.Epilepsies.length || this.opts.spawners < 0) {
+    if (this.epilepsies.length || this.opts.spawners < 0) {
         return this;
     }
     for (var i = 0; i < this.opts.spawners; i++) {
-        this.Epilepsies.push(this.generateSpawner());
+        this.epilepsies.push(this.generateSpawner());
     }
     return this;
 };
 
-Epilepsy.prototype.generateSpawner = function(i) {
+Epilepsy.prototype.generateSpawner = function() {
 
-    if (typeof i === 'undefined') {
-        i = this.Epilepsies.length;
+    return new Spawner({
+        object: $(this.opts.object),
+        callback: this.seize.bind(this),
+        minDelay: this.opts.minDelay,
+        maxDelay: this.opts.maxDelay
+    }).start();
+
+};
+
+Epilepsy.prototype.seize = function(element, lastElement) {
+
+    if (!element || !$(element).length) {
+       return;
     }
-
-    var o = this.opts;
-    var element = $(o.object).first().clone().appendTo($('body'))
-        .css({
-            position: 'fixed',
-            top: this.rand(0, window.innerHeight),
-            left: this.rand(0, window.innerWidth)
-        });
-    var animate = o.animation ? $.proxy(o.animation, element) : null;
+    element = $(element);
+    // remove the last one
+    if (lastElement instanceof jQuery) {
+        if (lastElement.data(this.intervalProperty)) {
+            window.clearInterval(lastElement.data(this.intervalProperty));
+        }
+        lastElement.remove();
+    }
+    // create the new one
+    element.css({
+        position: 'fixed',
+        top: this.rand(0, window.innerHeight),
+        left: this.rand(0, window.innerWidth)
+    }).appendTo($('body'));
+    var animate = this.opts.animation ? this.opts.animation.bind(element) : null;
     if (animate) {
-        var delay = this.rand(o.minDuration, o.maxDuration);
-        var interval = window.setInterval(animate, delay);
+        var delay = this.rand(this.opts.minDuration, this.opts.maxDuration);
+        element.data(this.intervalProperty, window.setInterval(animate, delay));
     }
-    var self = this;
-    return window.setTimeout(function() {
-        window.clearInterval(interval);
-        element.remove();
-        self.Epilepsies[i] = self.generateSpawner(i);
-    }, this.rand(o.minDelay, o.maxDelay));
 
 };
 
 Epilepsy.prototype.stop = function() {
-    var Epilepsies = this.Epilepsies;
-    this.Epilepsies = [];
-    for (var i = 0; i < Epilepsies.length; i++) {
-        window.clearTimeout(Epilepsies[i]);
+    for (var i = 0; i < this.epilepsies.length; i++) {
+        this.epilepsies[i].stop();
     }
+    this.epilepsies = [];
     return this;
 };
 

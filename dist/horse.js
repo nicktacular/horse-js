@@ -1,11 +1,90 @@
+/**
+ * Uselessly rotates your cursor.
+ * ... with mad respect to CraigIsCool.com for the first version
+ * @param {Object} [options] - Some options. Sane defaults provided.
+ * @param {int} [options.speed=40] - ms, how often do we rotate the cursor?
+ * @param {$} [options.target=*] - cursor change affects what on the page?
+ * @param {bool} [options.anti=false] - if true, spins anticlockwise
+ */
+function Cursor(options)
+{
+    this.opts = $.extend({}, this.defaultOptions, options);
+    this.cursors = [
+        'n-resize',
+        'ne-resize',
+        'e-resize',
+        'se-resize',
+        's-resize',
+        'sw-resize',
+        'w-resize',
+        'nw-resize'
+    ];
+    this.pos = 0;
+    this.interval = null;
+}
+
+Cursor.prototype.defaultOptions = {
+    speed: 40,
+    target: '*',
+    anti: false
+};
+
+Cursor.prototype.blip = function()
+{
+    $(this.opts.target).css('cursor', this.cursors[this.pos]);
+    if (this.opts.anti && this.pos === 0) {
+        this.pos = this.cursors.length - 1;
+    } else if (!this.opts.anti && this.pos === this.cursors.length - 1) {
+        this.pos = 0;
+    } else if (this.opts.anti) {
+        this.pos--;
+    } else {
+        this.pos++;
+    }
+};
+
+Cursor.prototype.start = function()
+{
+    if (this.timeout) {
+        this.stop();
+    }
+    this.interval = window.setInterval(
+        this.blip.bind(this),
+        this.opts.speed
+    );
+    return this;
+};
+
+Cursor.prototype.stop = function()
+{
+    if (this.interval) {
+        window.clearInterval(this.interval);
+    }
+    return this;
+};;
+/**
+ * Spawn an object and display it, temporarily, at a random spot.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @param {$} options.object - what gets displayed?
+ * @param {int} [options.spawners=20] - how many generated at a time?
+ * @param {function} [options.animation=null] - every minDuration/maxDuration, this is called.
+ *   Runs in the context of the object. Use, eg., to toggle a class.
+ * @param {int} [options.minDelay=600] - how long does the element exist?
+ * @param {int} [options.maxDelay=800] - how long does the element exist?
+ * @param {int} [options.minDuration=200] - how quickly does the animation run?
+ * @param {int} [options.maxDuration=600] - how quickly does the animation run?
+ */
 function Epilepsy(options) {
 
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.Epilepsies = [];
-    this.opts = $.extend(this.defaultOptions, options);
-
+    this.epilepsies = [];
+    this.opts = $.extend({}, this.defaultOptions, options);
+    this.intervalProperty = '__epilepsy';
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for epilepsy');
+    }
 }
 
 Epilepsy.prototype.defaultOptions = {
@@ -17,37 +96,15 @@ Epilepsy.prototype.defaultOptions = {
     maxDuration: 50
 };
 
-Epilepsy.prototype.options = function(options, option) {
-    if (typeof options === 'undefined') {
-        return this.opts;
-    }
-    var newOptions = this.opts;
-    if (typeof option === 'undefined' && typeof options === 'object') {
-        $.extend(newOptions, options);
-    } else if (typeof option !== 'undefined') {
-        var v = {};
-        v[options] = option;
-        $.extend(newOptions, v);
-    } else {
-        throw TypeError('unexpected configuration');
-    }
-    if (this.validateOptions(newOptions)) {
-        this.opts = newOptions;
-    } else {
-        throw Error('invalid parameter');
-    }
-    return this;
-};
-
 Epilepsy.prototype.validateOptions = function(options) {
     return (
         options &&
-            (options.spawners === 'number' && options.spawners > 0 ) &&
-            (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-            (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+            (typeof options.spawners === 'number' && options.spawners > 0 ) &&
+            (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+            (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
             (options.minDelay <= options.maxDelay) &&
-            (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-            (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+            (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+            (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
             (options.minDuration <= options.maxDuration) &&
             (options.object instanceof jQuery && options.object.length === 1) &&
             (typeof options.animation  === 'function' || options.animation === null)
@@ -55,48 +112,58 @@ Epilepsy.prototype.validateOptions = function(options) {
 };
 
 Epilepsy.prototype.start = function() {
-    if (this.Epilepsies.length || this.opts.spawners < 0) {
+    if (this.epilepsies.length || this.opts.spawners < 0) {
         return this;
     }
     for (var i = 0; i < this.opts.spawners; i++) {
-        this.Epilepsies.push(this.generateSpawner());
+        this.epilepsies.push(this.generateSpawner());
     }
     return this;
 };
 
-Epilepsy.prototype.generateSpawner = function(i) {
+Epilepsy.prototype.generateSpawner = function() {
 
-    if (typeof i === 'undefined') {
-        i = this.Epilepsies.length;
+    return new Spawner({
+        object: $(this.opts.object),
+        callback: this.seize.bind(this),
+        minDelay: this.opts.minDelay,
+        maxDelay: this.opts.maxDelay
+    }).start();
+
+};
+
+Epilepsy.prototype.seize = function(element, lastElement) {
+
+    if (!element || !$(element).length) {
+       return;
     }
-
-    var o = this.opts;
-    var element = $(o.object).first().clone().appendTo($('body'))
-        .css({
-            position: 'fixed',
-            top: this.rand(0, window.innerHeight),
-            left: this.rand(0, window.innerWidth)
-        });
-    var animate = o.animation ? $.proxy(o.animation, element) : null;
+    element = $(element);
+    // remove the last one
+    if (lastElement instanceof jQuery) {
+        if (lastElement.data(this.intervalProperty)) {
+            window.clearInterval(lastElement.data(this.intervalProperty));
+        }
+        lastElement.remove();
+    }
+    // create the new one
+    element.css({
+        position: 'fixed',
+        top: this.rand(0, window.innerHeight),
+        left: this.rand(0, window.innerWidth)
+    }).appendTo($('body'));
+    var animate = this.opts.animation ? this.opts.animation.bind(element) : null;
     if (animate) {
-        var delay = this.rand(o.minDuration, o.maxDuration);
-        var interval = window.setInterval(animate, delay);
+        var delay = this.rand(this.opts.minDuration, this.opts.maxDuration);
+        element.data(this.intervalProperty, window.setInterval(animate, delay));
     }
-    var self = this;
-    return window.setTimeout(function() {
-        window.clearInterval(interval);
-        element.remove();
-        self.Epilepsies[i] = self.generateSpawner(i);
-    }, this.rand(o.minDelay, o.maxDelay));
 
 };
 
 Epilepsy.prototype.stop = function() {
-    var Epilepsies = this.Epilepsies;
-    this.Epilepsies = [];
-    for (var i = 0; i < Epilepsies.length; i++) {
-        window.clearTimeout(Epilepsies[i]);
+    for (var i = 0; i < this.epilepsies.length; i++) {
+        this.epilepsies[i].stop();
     }
+    this.epilepsies = [];
     return this;
 };
 
@@ -150,8 +217,8 @@ function Runaway(options) {
 }
 
 Runaway.prototype.options = {
-    proximity: 30,
-    velocity: 20
+    proximity: 50,
+    velocity: 50
 };
 
 Runaway.prototype.velocity = 0;
@@ -167,9 +234,16 @@ Runaway.prototype.start = function(thing) {
     this.thing = $(thing);
     this.window = $(window);
 
-    this.thing.css({"position": "fixed", "z-index": 2147483647});   // lol
+    var position = this.thing.offset();
+    this.thing.css({
+        "left": position.left,
+        "top": position.top,
+        "position": "absolute",
+        "z-index": 2147483647
+    });   // lol
     this.uniqueId = Math.random().toString(36).substr(2);
     this.window.on('mousemove.runaway' + this.uniqueId, $.proxy(this.run, this));
+
 };
 
 /**
@@ -179,13 +253,14 @@ Runaway.prototype.start = function(thing) {
 Runaway.prototype.run = function(e) {
     var position = this.thing.offset();
 
-    var halfWidth = this.thing.width()/2;
-    var halfHeight = this.thing.height()/2;
 
-    // first grab object position CENTER relative to window scroll and object size
+    var halfWidth = this.thing.outerWidth()/2;
+    var halfHeight = this.thing.outerHeight()/2;
+
+    // first grab object position CENTER relative to object size
     var adjustedPos = [
-        position.left + halfWidth - this.window.scrollLeft(),
-        position.top + halfHeight - this.window.scrollTop()
+        position.left + halfWidth,
+        position.top + halfHeight
     ];
 
     var mouseOffset = [
@@ -196,9 +271,9 @@ Runaway.prototype.run = function(e) {
     // in most cases, the mouse isn't even close to the object
     // so this saves us a lot of calculations
     if (
-        Math.abs(mouseOffset[0] - adjustedPos[0]) > this.proximity + halfWidth ||
-        Math.abs(mouseOffset[1] - adjustedPos[1]) > this.proximity + halfHeight
-        ) {
+        Math.abs(mouseOffset[0]) > this.proximity + halfWidth ||
+        Math.abs(mouseOffset[1]) > this.proximity + halfHeight
+    ) {
         return;
     }
 
@@ -232,10 +307,10 @@ Runaway.prototype.run = function(e) {
 
     if (
         newPosition[0] < 0 ||
-            newPosition[0] > this.window.width() ||
-            newPosition[1] < 0 ||
-            newPosition[1] > this.window.height()
-        ) {    // out of bounds, lets get random
+        newPosition[0] > this.window.width() ||
+        newPosition[1] < 0 ||
+        newPosition[1] > this.window.height()
+    ) {    // out of bounds, lets get random
         newPosition[0] = Math.floor(Math.random() * this.window.width());
         newPosition[1] = Math.floor(Math.random() * this.window.height());
     }
@@ -264,79 +339,142 @@ Runaway.prototype.stop = function() {
     this.thing.unbind('mouseover.runaway' + this.uniqueId);
 };
 ;
-function Storm(options) {
-
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @paramm {$} options.object - what gets displayed?
+ * @paramm {int} [options.minDelay=600] - how quickly should spawners run?
+ * @paramm {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @paramm {function} [options.callback=null] - runs when a spawn occurs.
+ *   receives the new element and the previously spawned element,
+ *   if there was one, as arguments.
+ */
+function Spawner(options)
+{
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.storms = [];
-    this.opts = $.extend(this.defaultOptions, options);
+    this.opts = $.extend({}, this.defaultOptions, options);
+    this.timeout = null;
+}
 
+Spawner.prototype.defaultOptions = {
+    minDelay: 200,
+    maxDelay: 500,
+    callback: null,
+    object: null
+};
+
+Spawner.prototype.start = function()
+{
+    if (!this.timeout) {
+        this.timeout = window.setTimeout(
+            this.spawner().bind(this),
+            this.rand(this.opts.minDelay, this.opts.maxDelay)
+        );
+    }
+    return this;
+};
+
+Spawner.prototype.stop = function()
+{
+    if (this.timeout) {
+        window.clearTimeout(this.timeout)
+        this.timeout = null;
+    }
+    return this;
+};
+
+Spawner.prototype.spawner = function(lastElement)
+{
+    if (typeof lastElement === undefined) {
+        lastElement = null;
+    }
+    var element = this.opts.object && $(this.opts.object.length)
+        ? $(this.opts.object).first().clone()
+        : null;
+    var callback = this.opts.callback && typeof this.opts.callback === 'function'
+        ? this.opts.callback
+        : null;
+    return (function() {
+        callback(element, lastElement);
+        this.timeout = window.setTimeout(
+            this.spawner(element).bind(this),
+            this.rand(this.opts.minDelay, this.opts.maxDelay)
+        );
+    }).bind(this);
+}
+
+Spawner.prototype.rand = function(min, max) {
+    min = parseInt(min, 10);
+    max = parseInt(max, 10);
+    if (typeof min === 'undefined') min = 0;
+    if (typeof max === 'undefined') max = 1;
+    if (min > max) {
+        throw new RangeError('requested invalid range');
+    } else if (min === max) {
+        return min;
+    }
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+;
+/**
+ * Spawn an object and fly it across the screen.
+ * @param {Object} options - Some options. Sane defaults provided.
+ * @paramm {$} options.object - what gets displayed?
+ * @paramm {int} [options.minDelay=600] - how quickly should spawners run?
+ * @paramm {int} [options.maxDelay=800] - how quickly should spawners run?
+ * @paramm {int} [options.minDuration=200] - how long should it take to move across the screen?
+ * @paramm {int} [options.maxDuration=600] - how long should it take to move across the screen?
+ */
+function Storm(options) {
+    if (!options || !options.object || !$(options.object).length) {
+        throw new Error('required an object.');
+    }
+    this.spawner = null;
+    this.opts = $.extend({}, this.defaultOptions, options);
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for storm');
+    }
 }
 
 Storm.prototype.defaultOptions = {
-    spawners: 20,
-    minDelay: 600,
-    maxDelay: 800,
+    minDelay: 100,
+    maxDelay: 200,
     minDuration: 200,
     maxDuration: 600
-};
-
-Storm.prototype.options = function(options, option) {
-    if (typeof options === 'undefined') {
-        return this.opts;
-    }
-    var newOptions = this.opts;
-    if (typeof option === 'undefined' && typeof options === 'object') {
-        $.extend(newOptions, options);
-    } else if (typeof option !== 'undefined') {
-        var v = {};
-        v[options] = option;
-        $.extend(newOptions, v);
-    } else {
-        throw TypeError('unexpected configuration');
-    }
-    if (this.validateOptions(newOptions)) {
-        this.opts = newOptions;
-    } else {
-        throw Error('invalid parameter');
-    }
-    return this;
 };
 
 Storm.prototype.validateOptions = function(options) {
     return (
         options &&
-        (options.spawners === 'number' && options.spawners > 0 ) &&
-        (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-        (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+        (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+        (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
         (options.minDelay <= options.maxDelay) &&
-        (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-        (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+        (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+        (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
         (options.minDuration <= options.maxDuration) &&
         (options.object instanceof jQuery && options.object.length === 1)
     );
 };
 
 Storm.prototype.start = function() {
-    if (this.storms.length || this.opts.spawners < 0) {
-        return this;
+    if (this.spawner) {
+        this.spawner.stop();
     }
-    for (var i = 0; i < this.opts.spawners; i++) {
-        this.storms.push(this.generateSpawner());
-    }
+    this.spawner = new Spawner({
+        object: $(this.opts.object),
+        callback: this.storm.bind(this),
+        minDelay: this.opts.minDelay,
+        maxDelay: this.opts.maxDelay
+    }).start();
     return this;
 };
 
-Storm.prototype.generateSpawner = function(i) {
-
-    if (typeof i === 'undefined') {
-        i = this.storms.length;
+Storm.prototype.storm = function(element) {
+    if (!element || !$(element).length) {
+        return;
     }
-
-    var o = this.opts;
-    var element = $(o.object).first().clone()
-        .appendTo($('body'));
     element
         .css({
             position: 'fixed',
@@ -345,23 +483,18 @@ Storm.prototype.generateSpawner = function(i) {
         })
         .animate(
             { left: window.innerWidth },
-            this.rand(o.minDuration, o.maxDuration),
+            this.rand(this.opts.minDuration, this.opts.maxDuration),
             'linear',
             function() { element.remove(); }
-        );
-    var self = this;
-    return window.setTimeout(function() {
-        self.storms[i] = self.generateSpawner(i);
-    }, this.rand(o.minDelay, o.maxDelay));
-
+        )
+        .appendTo($('body'));
 };
 
 Storm.prototype.stop = function() {
-    var storms = this.storms;
-    this.storms = [];
-    for (var i = 0; i < storms.length; i++) {
-        window.clearTimeout(storms[i]);
+    if (this.spawner) {
+        this.spawner.stop();
     }
+    this.spawner = null;
     return this;
 };
 
