@@ -4,7 +4,7 @@ function Storm(options) {
         throw new Error('required an object.');
     }
     this.storms = [];
-    this.opts = $.extend(this.defaultOptions, options);
+    this.opts = $.extend({}, this.defaultOptions, options);
 
 }
 
@@ -65,7 +65,7 @@ Storm.prototype.start = function() {
 Storm.prototype.generateSpawner = function() {
 
     return new Spawner({
-        object: $(this.opts.object).first().clone(),
+        object: $(this.opts.object),
         callback: this.storm.bind(this),
         minDelay: this.opts.minDelay,
         maxDelay: this.opts.maxDelay
@@ -90,7 +90,7 @@ Storm.prototype.storm = function(element) {
             function() { element.remove(); }
         )
         .appendTo($('body'));
-}
+};
 
 Storm.prototype.stop = function() {
     for (var i = 0; i < this.storms.length; i++) {

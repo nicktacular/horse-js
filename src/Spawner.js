@@ -3,7 +3,7 @@ function Spawner(options)
     if (!options || !options.object || !$(options.object).length) {
         throw new Error('required an object.');
     }
-    this.opts = $.extend(this.defaultOptions, options);
+    this.opts = $.extend({}, this.defaultOptions, options);
     this.timeout = null;
 }
 
@@ -18,7 +18,7 @@ Spawner.prototype.start = function()
 {
     if (!this.timeout) {
         this.timeout = window.setTimeout(
-            this.spawner(),
+            this.spawner().bind(this),
             this.rand(this.opts.minDelay, this.opts.maxDelay)
         );
     }
@@ -34,8 +34,11 @@ Spawner.prototype.stop = function()
     return this;
 };
 
-Spawner.prototype.spawner = function()
+Spawner.prototype.spawner = function(lastElement)
 {
+    if (typeof lastElement === undefined) {
+        lastElement = null;
+    }
     var element = this.opts.object && $(this.opts.object.length)
         ? $(this.opts.object).first().clone()
         : null;
@@ -43,9 +46,9 @@ Spawner.prototype.spawner = function()
         ? this.opts.callback
         : null;
     return (function() {
-        callback(element);
+        callback(element, lastElement);
         this.timeout = window.setTimeout(
-            this.spawner().bind(this),
+            this.spawner(element).bind(this),
             this.rand(this.opts.minDelay, this.opts.maxDelay)
         );
     }).bind(this);
