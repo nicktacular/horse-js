@@ -62,27 +62,16 @@ Storm.prototype.start = function() {
     return this;
 };
 
-Storm.prototype.generateSpawner = function(i) {
+Storm.prototype.generateSpawner = function() {
 
-    if (typeof i === 'undefined') {
-        i = this.storms.length;
-    }
+    return new Spawner({
+        object: $(this.opts.object).first(),
+        callback: this.storm.bind(this),
+        minDelay: this.opts.minDelay,
+        maxDelay: this.opts.maxDelay
+    }).start();
 
-    var o = this.opts;
-    var element = $(o.object).first().clone()
-        .appendTo($('body'));
-    element
-        .css({
-            position: 'fixed',
-            left: -1 * element.width(),
-            top: this.rand(0, window.innerHeight)
-        })
-        .animate(
-            { left: window.innerWidth },
-            this.rand(o.minDuration, o.maxDuration),
-            'linear',
-            function() { element.remove(); }
-        );
+
     var self = this;
     return window.setTimeout(function() {
         self.storms[i] = self.generateSpawner(i);
@@ -90,12 +79,29 @@ Storm.prototype.generateSpawner = function(i) {
 
 };
 
-Storm.prototype.stop = function() {
-    var storms = this.storms;
-    this.storms = [];
-    for (var i = 0; i < storms.length; i++) {
-        window.clearTimeout(storms[i]);
+Storm.prototype.storm = function(element) {
+    if (!element || !$(element).length) {
+        return;
     }
+    element
+        .css({
+            position: 'fixed',
+            left: -1 * element.width(),
+            top: this.rand(0, window.innerHeight)
+        })
+        .animate(
+        { left: window.innerWidth },
+        this.rand(o.minDuration, o.maxDuration),
+        'linear',
+        function() { element.remove(); }
+    );
+}
+
+Storm.prototype.stop = function() {
+    for (var i = 0; i < this.storms.length; i++) {
+        this.storms[i].stop();
+    }
+    this.storms = [];
     return this;
 };
 
