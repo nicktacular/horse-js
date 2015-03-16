@@ -43,7 +43,7 @@ Spawner.prototype.spawner = function()
         ? this.opts.callback
         : null;
     return (function() {
-        callback.call(element);
+        callback(element);
         this.timeout = window.setTimeout(
             this.spawner().bind(this),
             this.rand(this.opts.minDelay, this.opts.maxDelay)

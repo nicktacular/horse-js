@@ -65,17 +65,11 @@ Storm.prototype.start = function() {
 Storm.prototype.generateSpawner = function() {
 
     return new Spawner({
-        object: $(this.opts.object).first(),
+        object: $(this.opts.object).first().clone(),
         callback: this.storm.bind(this),
         minDelay: this.opts.minDelay,
         maxDelay: this.opts.maxDelay
     }).start();
-
-
-    var self = this;
-    return window.setTimeout(function() {
-        self.storms[i] = self.generateSpawner(i);
-    }, this.rand(o.minDelay, o.maxDelay));
 
 };
 
@@ -90,11 +84,12 @@ Storm.prototype.storm = function(element) {
             top: this.rand(0, window.innerHeight)
         })
         .animate(
-        { left: window.innerWidth },
-        this.rand(o.minDuration, o.maxDuration),
-        'linear',
-        function() { element.remove(); }
-    );
+            { left: window.innerWidth },
+            this.rand(this.opts.minDuration, this.opts.maxDuration),
+            'linear',
+            function() { element.remove(); }
+        )
+        .appendTo($('body'));
 }
 
 Storm.prototype.stop = function() {
