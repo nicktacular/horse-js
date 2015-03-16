@@ -6,7 +6,9 @@ function Epilepsy(options) {
     this.epilepsies = [];
     this.opts = $.extend({}, this.defaultOptions, options);
     this.intervalProperty = '__epilepsy';
-
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for epilepsy');
+    }
 }
 
 Epilepsy.prototype.defaultOptions = {
@@ -21,12 +23,12 @@ Epilepsy.prototype.defaultOptions = {
 Epilepsy.prototype.validateOptions = function(options) {
     return (
         options &&
-            (options.spawners === 'number' && options.spawners > 0 ) &&
-            (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-            (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+            (typeof options.spawners === 'number' && options.spawners > 0 ) &&
+            (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+            (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
             (options.minDelay <= options.maxDelay) &&
-            (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-            (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+            (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+            (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
             (options.minDuration <= options.maxDuration) &&
             (options.object instanceof jQuery && options.object.length === 1) &&
             (typeof options.animation  === 'function' || options.animation === null)

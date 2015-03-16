@@ -6,7 +6,9 @@ function Epilepsy(options) {
     this.epilepsies = [];
     this.opts = $.extend({}, this.defaultOptions, options);
     this.intervalProperty = '__epilepsy';
-
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for epilepsy');
+    }
 }
 
 Epilepsy.prototype.defaultOptions = {
@@ -21,12 +23,12 @@ Epilepsy.prototype.defaultOptions = {
 Epilepsy.prototype.validateOptions = function(options) {
     return (
         options &&
-            (options.spawners === 'number' && options.spawners > 0 ) &&
-            (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-            (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+            (typeof options.spawners === 'number' && options.spawners > 0 ) &&
+            (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+            (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
             (options.minDelay <= options.maxDelay) &&
-            (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-            (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+            (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+            (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
             (options.minDuration <= options.maxDuration) &&
             (options.object instanceof jQuery && options.object.length === 1) &&
             (typeof options.animation  === 'function' || options.animation === null)
@@ -337,7 +339,9 @@ function Storm(options) {
     }
     this.storms = [];
     this.opts = $.extend({}, this.defaultOptions, options);
-
+    if (!this.validateOptions(this.opts)) {
+        throw Error('invalid options for storm');
+    }
 }
 
 Storm.prototype.defaultOptions = {
@@ -348,37 +352,15 @@ Storm.prototype.defaultOptions = {
     maxDuration: 600
 };
 
-Storm.prototype.options = function(options, option) {
-    if (typeof options === 'undefined') {
-        return this.opts;
-    }
-    var newOptions = this.opts;
-    if (typeof option === 'undefined' && typeof options === 'object') {
-        $.extend(newOptions, options);
-    } else if (typeof option !== 'undefined') {
-        var v = {};
-        v[options] = option;
-        $.extend(newOptions, v);
-    } else {
-        throw TypeError('unexpected configuration');
-    }
-    if (this.validateOptions(newOptions)) {
-        this.opts = newOptions;
-    } else {
-        throw Error('invalid parameter');
-    }
-    return this;
-};
-
 Storm.prototype.validateOptions = function(options) {
     return (
         options &&
-        (options.spawners === 'number' && options.spawners > 0 ) &&
-        (options.minDelay === 'number' && options.minDelay >= 0 ) &&
-        (options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
+        (typeof options.spawners === 'number' && options.spawners > 0 ) &&
+        (typeof options.minDelay === 'number' && options.minDelay >= 0 ) &&
+        (typeof options.maxDelay === 'number' && options.maxDelay >= 0 ) &&
         (options.minDelay <= options.maxDelay) &&
-        (options.minDuration === 'number' && options.minDuration >= 0 ) &&
-        (options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
+        (typeof options.minDuration === 'number' && options.minDuration >= 0 ) &&
+        (typeof options.maxDuration === 'number' && options.maxDuration >= 0 ) &&
         (options.minDuration <= options.maxDuration) &&
         (options.object instanceof jQuery && options.object.length === 1)
     );
