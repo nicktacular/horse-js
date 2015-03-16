@@ -2,7 +2,7 @@
  * Spawn an object and display it, temporarily, at a random spot.
  * @param {Object} options - Some options. Sane defaults provided.
  * @param {$} options.object - what gets displayed?
- * @param {int} [options.spawners=20] - how many generated at a time?
+ * @param {int} [options.spawners=8] - how many generated at a time?
  * @param {function} [options.animation=null] - every minDuration/maxDuration, this is called.
  *   Runs in the context of the object. Use, eg., to toggle a class.
  * @param {int} [options.minDelay=600] - how long does the element exist?
