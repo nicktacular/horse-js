@@ -10,11 +10,12 @@ A good horsewoman or horseman trains herself or himself in addition to training 
 horse.js is flexible and robust. Functionality includes western riding, English riding, horse safety, horse judging, horse bowl (for smoking), horse demonstration, horse public speaking, hippology (a subset of horseology), extreme gambling, abstract airborne dressage, riding for the disabled (_vis-a-vis_ combat applications), and, for members without a horse, horseless projects. Once enrolled in the horse project, you can choose any or all of these options
 
 ## Modules
-- `MichaelBay` Create copies of a jQuery object and display them randomly on the screen, with optional animation
-- `Storm` Cause copies of a jQuery object to fly across the screen
+- `Cursor` Makes the mouse cursor easier to manage
+- `Epilepsy` Copy an element and display it on random parts of the screen, optionally with animation.
+- `Runaway` Sometimes, your HTML elements should play hard to get.
+- `Spawner` Create arbitrary elements at a random interval.
+- `Storm` Fly elements across the screen.
 
 ## ToDo
-- `MichaelBay` and `Storm` should extend a generic Spawner
 - `Storm` should support movement in different directions, including diagonals, which should have appropriate rotate-transforms applied to them.
 - `HayVer` should start supporting semantic versioning.
-
